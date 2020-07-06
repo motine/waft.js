@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style type="text/css">body {padding: var(--universal-padding);} </style>
+</head>
+<body>
+
+<h1>Form</h1>
+
+<form>
+  <label for="field1">Age</label><input &age type="number" id="field1" name="field1" value="17">
+  <div :style.display="{{&age.value}} >= 18 ? 'block' : 'none'" class="responsive-margin">You are an adult</div>
+</form>
+
+<h1>Table</h1>
+<table>
+  <thead>
+    <tr><th>#</th><th>Test</th></tr>
+  </thead>
+  <tbody>
+    <tr><td :innerHtml="{{this.rowIndex}} + 1"></td><td>Some Data</td></tr>
+    <tr><td :innerHtml="{{this.rowIndex}} + 1"></td><td>Other Information</td></tr>
+  </tbody>
+</table>
+
+<button onclick="addNewRow()" class="primary">Add a new row</button>
+
+<script type="text/javascript">
+  // ignore this test code
+  function addNewRow() {
+    const tbody = document.querySelector('tbody');
+    const newTr = document.createElement('tr');
+    const newTd1 = document.createElement('td');
+    newTd1.setAttribute(':innerHtml', '{{this.rowIndex}} + 1');
+    const newTd2 = document.createElement('td');
+    newTd2.innerHTML = `New ${Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5)}`;
+
+    newTr.appendChild(newTd1);
+    newTr.appendChild(newTd2);
+    tbody.appendChild(newTr);
+  }
+  // end ignore
+
+  // TODO use proxy to wrap the element we depend on (when using @age.value, we wrap the age field with proxy)
+  // TODO document
+
+  // nomenclature:
+  //   :binding
+  //   &target
+  //   {{dependency}}
+  // TODO add @click for listeners
+
+  // &target - for a single target
+  // later: &&target - for a list of targets
+
+  // Polyfill potential: closest, Proxy
+
+  // document: the framework
+  // document: and I think it will be great for doing HTML over the wire and not having to use heavy stuff like react or vue in the frontend
+  // document: this is declarative (the : indicates a dynamic expression). it is reactive ( {{ }} indicate that there is a dependency which needs to be monitored) and concise (& indicate targets for simple identification).
+  // document: enhancing (also this)
+  // document: global mutation observer
+
+  let targets = {};
+
+  // utility function to access the target map (used by evaluateExpression)
+  // enhancing adds convenience values/functions such as rowIndex and such to the element.
+  // I would have loved to use Proxies for this, but: "Note that while this "no-op" works for JavaScript objects, it does not work for native browser objects like DOM Elements." (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+  function findTarget(targetName, enhance = false) {
+    const target = targets[targetName]
+    // TODO add error handling if there is no such target
+    return enhance ? enhanceElement(target) : target; // wrap the target into a proxy here, so we can add methods such as rowIndex
+  }
+
+  function enhanceElement(element) {
+    if (element._enhanced) { return element; }
+
+    Object.defineProperty(element, 'rowIndex', {
+      get: function() { 
+        const parentRow = element.closest('tr');
+        const parentTBody = parentRow.closest('tbody');
+        const allRows = [...parentTBody.children];
+        return allRows.indexOf(parentRow);
+      }
+    });
+    // TODO add convenience mehtods different depending on their type (e.g. input vs. select vs. checkbox vs. radio)
+    element._enhanced = true;
+    return element;
+  }
+
+  function addTargetsForElement(element) {
+    for (const attr of element.attributes) {
+      if (attr.name.startsWith('&')) {
+        targets[attr.name] = element;
+      }
+    }
+  }
+
+  // adds the watcher for dependencies and updates the binding for the first time
+  function processBindingsForElement(element) {
+    for (const attr of element.attributes) {
+      if (attr.name.startsWith(':')) {
+        const attributePath = attr.name.slice(1);
+        const expression = attr.value;
+        addWatcherForDependencies(element, attributePath, expression);
+        updateBinding(element, attributePath, expression)
+      }
+    }
+  }
+
+  function addWatcherForDependencies(element, attributePath, expression) {
+    for (const [_match, inner] of expression.matchAll(/{{([^}]+)}}/g)) { // find all {{ ... }}
+      let [_match, dependName, dependFirstAttr, ] = inner.match(/^([^\.]+)\.([^\.\s]+)/) || []; // dependName: e.g. `&sometarget` or `this`; firstAttr: e.g. `style` or `innerhtml`
+      if (!dependName) { throw `could not infer the object to depend on for ${inner} (there must be a '.' somewhere)`; }
+      
+      let dependElement;
+      if (dependName.startsWith('&')) { dependElement = findTarget(dependName); }
+      if (dependName == 'this') { dependElement = element; }
+      if (!dependElement) { throw `could not find the object to depend on for ${dependName}`; }
+      
+      addListenerForDependency(dependElement, dependFirstAttr, (ev) => { updateBinding(element, attributePath, expression); });
+    }
+  }
+
+  function addListenerForDependency(element, attribute, handler) {
+    if (attribute == 'value') {
+      // TODO handle inputs different depending on their type (e.g. input vs. select vs. checkbox vs. radio)
+      element.addEventListener('change', handler)
+      return;
+    }
+    if (attribute == 'rowIndex') {
+      const observer = new MutationObserver(handler);
+      observer.observe(element.closest('tbody'), { childList: true });
+      return;
+    }
+    // TODO add more listeners for attributes
+    throw `unsupported attribute ${attribute}, don't know how to observe changes for it`
+  }
+
+  function setValueForAttributePath(element, attributePath, value) { // unfortunately we can not use Proxy for this (e.g. error: TypeError: 'get style' called on an object that does not implement interface HTMLElement.)
+    attributePath = attributePath.toLowerCase();
+    if (attributePath == 'innerhtml') {
+      element.innerHTML = value;
+      return;
+    }
+    // we set a regular attribute, we first need to find the right attribute (e.g. 'style.display' will yield the attribute `element['style']['display']`)
+    const splitPath = attributePath.split('.');
+    let attribute = element; // descend down the second last attribute
+    for (const attrName of splitPath.slice(0, -1)) {
+      attribute = attribute[attrName];
+    }
+    attribute[splitPath[splitPath.length-1]] = value;
+  }
+
+  // evaluates the expression and sets the result to the element's attribute (given by attributePath).
+  function updateBinding(element, attributePath, expression) {
+    const value = evaluateExpression(expression, element);
+    setValueForAttributePath(element, attributePath, value)
+  }
+
+  function evaluateExpression(expression, elementToPassAsThis) {
+    let code = expression;
+    code = code.replace(/{{([^}]+)}}/g, (_match, inner) => inner); // remove dependency marker (we don't need it here)
+    code = code.replace(/this\./g, (_match) => 'enhanceElement(this).'); // let's also enhance this
+    code = code.replace(/(&[\w]+)/g, (_match, targetName) => `findTarget('${targetName}', true)`) // substitute targets with finders
+    code = `return ${code}`;
+    try {
+      return Function(code).apply(elementToPassAsThis);
+    } catch (err) {
+      throw `${err}\nin generated expression:\n${code}`;
+    }
+  }
+
+  // add all (sub-)elements with targets set to the "targets" map and process the bindings.
+  // this function recurses
+  function discover(container) {
+    // check attributes
+    addTargetsForElement(container);
+    processBindingsForElement(container);
+    // recurse into children
+    for (const child of container.children) {
+      discover(child);
+    }
+  }
+
+  // sets up the evaluation of all bindings (and adding the necessary dependencies for them) for all elements children of the container
+  discover(document.body);
+  // setup a global mutation observer to call discover on it when new nodes come in (we do not monitor attributes here, this is done via the dependencies)
+  const observer = new MutationObserver((mutationsList, _observer) => {
+    for(const mutation of mutationsList) {
+      for (const addedNode of mutation.addedNodes) {
+        if (addedNode.nodeType == Node.ELEMENT_NODE) { // we ignore text & attributes
+          discover(addedNode);
+        }
+      }
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+</script>
+
+</div>
+</body>
+</html>
