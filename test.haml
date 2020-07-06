@@ -1,0 +1,22 @@
+!!!
+%html
+  %body
+    %h1 Form
+    %form
+      %label Age
+      %input{ data: { wa: { target: 'age' } }, type: "number", value: '17'}/
+      %div{ data: { wa: { 'style.display': 'target("age").depend("value") >= 18 ? "block" : "none"' } } } You are an adult
+    %h1 Table
+    %table
+      %thead
+        %tr
+          %th #
+          %th Test
+      %tbody
+        %tr
+          %td{ data: { wa: { innerhtml: 'target(this).depend("rowIndex") + 1' } } }
+          %td Some Data
+        %tr
+          %td{ data: { wa: { innerhtml: 'target(this).depend("rowIndex") + 1' } } }
+          %td Other Information
+    %button.primary{ onclick: 'addNewRow()' } Add a new row
