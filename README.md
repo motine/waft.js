@@ -171,3 +171,9 @@ Vue / React
 
 alpine.js
 -->
+## Development
+
+```bash
+# build the minified version
+docker run -it --rm -v $PWD:/app -w /app node /bin/bash -c 'npm install && npm run build'
+```

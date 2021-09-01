@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/core": "^7.15.0",
+    "@babel/preset-env": "^7.15.0"
+  },
+  "scripts": {
+    "build": "babel --minified --presets=@babel/preset-env waft.js -o waft.min.js"
+  }
+}
