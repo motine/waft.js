@@ -1,6 +1,6 @@
 # waft.js
 
-Waft.js is a very minimal framework for sprinkling minimal dynamic behavior over html elements via javascript.
+Waft.js is a very minimal framework for sprinkling minimal dynamic behavior over html elements via JavaScript.
 
 The motivation was to:
 
