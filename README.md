@@ -11,12 +11,14 @@ The motivation was to:
 - syntax works well with Rails and HAML
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/motine/waft.js/waft.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/motine/waft.js/waft.min.js" defer></script>
 
 <span w-ref="time" w-text="return +new Date()"></span>
 <span w-ref="warning" w-show="return new Date().getHours() > 18">Wow, it's late!</span>
 <span w-on:click="wUpdate($time)">click me</span>
 ```
+
+**Please use the minified version in your app, because it is transpiled and has better browser support.**
 
 See more examples below or live demos in this [codepen](https://codepen.io/motine/pen/RwgrdOx).
 
