@@ -1,3 +1,7 @@
+// waft.js
+// version: 0.1
+// author: Tom Rothe
+// licence: MIT
 class WaftJs {
   AVAILABLE_EVENT_NAMES = ['blur', 'click', 'change', 'keyup', 'keydown', 'submit'];
   AVAILABLE_DIRECTIVES = {

@@ -10,7 +10,15 @@ The motivation was to:
 - avoid setup of a javascript build chain
 - syntax works well with Rails and HAML
 
-See live demos in this [codepen](https://codepen.io/motine/pen/RwgrdOx).
+```html
+<script src="https://cdn.jsdelivr.net/gh/motine/waft.js/waft.js" defer></script>
+
+<span w-ref="time" w-text="return +new Date()"></span>
+<span w-ref="warning" w-show="return new Date().getHours() > 18">Wow, it's late!</span>
+<span w-on:click="wUpdate($time)">click me</span>
+```
+
+See more examples below or live demos in this [codepen](https://codepen.io/motine/pen/RwgrdOx).
 
 ## Concepts
 
@@ -36,7 +44,8 @@ You have access to all refs inside of event handlers and directives, but you can
 To change an element, Waft.js defines **directives**:
 
 ```html
-<div w-show="return new Date().getHours() > 18">It's late!</div> <!-- make sure to use return in directives -->
+<div w-show="return new Date().getHours() > 18">It's late!</div>
+<!-- make sure to use return in directives -->
 ```
 
 Available directives are (see examples below):
@@ -121,8 +130,8 @@ _for brevity we use jQuery._
 
 ```haml
 %form
-  %input{ type="submit", 'w-on:submit': '$(this.form).append('<input name="a" value="77" />')' } Submit additional data
-  %input{ type="submit" } Submit
+  %input{ type:"submit", 'w-on:submit': "$(this.form).append('<input name=\"a\" value=\"77\" />')", value: "Submit additional data" }
+  %input{ type:"submit", value: "Submit" }
 ```
 
 **use with simpleform (hide the full input-group if certain value is given)**
@@ -143,3 +152,22 @@ _for brevity we use jQuery._
 %div{ 'w-ref': 'container'}
 .btn{ 'w-on:click': 'addRow($container)' } add row
 ```
+
+<!--
+## Comparison
+
+In this comparison we implement a very simple preview for a color picker.
+This example is super simple. The listed technologies below are obviously not as concise as waft.js because they are made to scale and to make code reusable. waft.js does not have those goals, so we end up with less code.
+
+```html
+<input w-ref="color" w-on:keyup="wUpdate($preview)" value="#ffcc00">
+<span w-ref="preview" w-update="this.style.backgroundColor = $color.value">Hello<span>
+```
+
+
+Stimulus: good alternative, but you have to add a new controller for each use case
+
+Vue / React
+
+alpine.js
+-->
