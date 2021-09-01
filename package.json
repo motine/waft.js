@@ -5,6 +5,6 @@
     "@babel/preset-env": "^7.15.0"
   },
   "scripts": {
-    "build": "babel --minified --presets=@babel/preset-env waft.js -o waft.min.js"
+    "build": "babel --minified --no-comments --presets=@babel/preset-env waft.js -o waft.min.js"
   }
 }

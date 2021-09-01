@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.waftJs = new WaftJs(document);
   window.waftJs.register(document);
 
-  observer = new MutationObserver((mutationsList, _observer) => {
+  const observer = new MutationObserver((mutationsList, _observer) => {
     for (const mutation of mutationsList) {
       for (const addedNode of mutation.addedNodes) {
         if (addedNode.nodeType == 1) { // 1: ELEMENT_NODE
