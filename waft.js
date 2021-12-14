@@ -58,7 +58,11 @@ class WaftJs {
       if (!attribute) { continue; }
       const code = attribute.value;
       if (eventName == 'submit') {
-        elm.form.addEventListener('submit', (ev) => { if (ev.submitter == elm) { this.handleEvent('submit', elm, code, ev) }});
+        if (elm instanceof HTMLFormElement) {
+          elm.addEventListener('submit', (ev) => { this.handleEvent('submit', elm, code, ev)});
+        } else {
+          elm.form.addEventListener('submit', (ev) => { if (ev.submitter == elm) { this.handleEvent('submit', elm, code, ev) }});
+        }
       } else {
         elm.addEventListener(eventName, (ev) => { this.handleEvent(eventName, elm, code, ev) });
       }
