@@ -1,5 +1,4 @@
 // waft.js
-// version: 0.1
 // author: Tom Rothe
 // licence: MIT
 class WaftJs {
