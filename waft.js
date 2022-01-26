@@ -25,6 +25,9 @@ class WaftJs {
     'w-text': (elm, evaluationResult) => {
       elm.textContent = evaluationResult;
     },
+    'w-class': (elm, evaluationResult) => {
+      elm.className = evaluationResult;
+    },
     'w-html': (elm, evaluationResult) => {
       elm.innerHTML = evaluationResult;
     }

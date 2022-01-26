@@ -55,6 +55,7 @@ Available directives are (see examples below):
 - `w-value`: sets the value of the (input) element
 - `w-text`: sets the textContent
 - `w-html`: sets the innerHTML
+- `w-class`: sets the className
 - `w-update`: is triggered if the element is supposed to be updated
 
 In each event handler and directive you have the following **context** setup for you when the code runs:
