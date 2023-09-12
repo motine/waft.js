@@ -40,7 +40,7 @@ In order to reference other elements, we can define and use **references** like 
 <div w-on:click="$some.value = '77'">click me</div>
 ```
 
-You have access to all refs inside of event handlers and directives, but you can also use `waftJs.ref.$myref` in an "outside" function.
+You have access to all refs inside of event handlers and directives, but you can also use `waftJs.refs.$myref` in an "outside" function.
 
 
 To change an element, Waft.js defines **directives**:
